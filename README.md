@@ -1,5 +1,7 @@
 # AutoManifest
 
+##### Maven usage:
+
 ```xml
 <build>
     <plugins>
@@ -33,4 +35,22 @@
         </plugin>
     </plugins>
 </build>
+```
+
+##### Gradle usage:
+
+```groovy
+dependencies {
+    annotationProcessor 'com.hunterwb:automanifest:0.1.0'
+}
+
+compileJava {
+    options.compilerArgs.add('-Aautomanifest=Automatic-Module-Name,Main-Class,Custom-Attribute:custom_value')
+}
+
+jar {
+    manifest {
+        from compileJava.destinationDirectory.file('META-INF/MANIFEST.MF')
+    }
+}
 ```

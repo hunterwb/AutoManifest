@@ -2,4 +2,4 @@
 target/
 *.iml
 .flattened-pom.xml
-example/
+examples/
