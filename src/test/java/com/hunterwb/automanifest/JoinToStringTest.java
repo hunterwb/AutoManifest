@@ -10,7 +10,7 @@ public final class JoinToStringTest {
     }
 
     private static void check(String expected, char delimiter, Object... array) {
-        String actual = Env.joinToString(array, delimiter);
+        String actual = Util.joinToString(array, delimiter);
         assert actual.equals(expected) : actual;
     }
 }

@@ -9,6 +9,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +40,7 @@ public final class AutoManifest implements Processor {
 
     private static final String MANIFEST_NAME = "META-INF/MANIFEST.MF";
 
-    private Env env;
+    private ProcessingEnvironment env;
 
     private final Map<Attributes.Name, Object> entries = new LinkedHashMap<Attributes.Name, Object>();
 
@@ -61,17 +62,16 @@ public final class AutoManifest implements Processor {
 
     @Override public void init(ProcessingEnvironment processingEnv) {
         if (env != null) throw new IllegalStateException();
-        env = new Env(processingEnv);
+        env = Util.requireNonNull(processingEnv);
         try {
             init();
         } catch (Exception e) {
-            env.error(e);
+            env.getMessager().printMessage(Diagnostic.Kind.ERROR, Util.getStackTraceAsString(e));
         }
     }
 
     private void init() {
-        String options = env.options().get(OPTION_NAME);
-        if (options == null) options = MAIN_CLASS;
+        String options = Util.getOrDefault(env.getOptions(), OPTION_NAME, MAIN_CLASS);
         for (String option : options.split(",", -1)) {
             int colon = option.indexOf(':');
             if (colon == -1) {
@@ -103,13 +103,15 @@ public final class AutoManifest implements Processor {
                 name = null;
             }
         }
-        if (name == null) env.warning("Illegal name: " + s);
+        if (name == null) {
+            env.getMessager().printMessage(Diagnostic.Kind.WARNING, "Illegal name: " + s);
+        }
         return name;
     }
 
     private void addEntry(Attributes.Name name, Object value) {
         if (entries.put(name, value) != null) {
-            env.warning("Duplicate name: " + name);
+            env.getMessager().printMessage(Diagnostic.Kind.WARNING, "Duplicate name: " + name);
         }
     }
 
@@ -132,39 +134,40 @@ public final class AutoManifest implements Processor {
         } else if (s.equalsIgnoreCase(BUILD_OS)) {
             return System.getProperty("os.name") + " (" + System.getProperty("os.version") + "; " + System.getProperty("os.arch") + ')';
         }
-        env.warning("Unrecognized name: " + s);
+        env.getMessager().printMessage(Diagnostic.Kind.WARNING, "Unrecognized name: " + s);
         return null;
     }
 
     @Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        if (env.error()) return false;
-        try {
-            if (roundEnv.processingOver()) {
-                writeManifest();
-            } else {
-                for (Object v : entries.values()) {
-                    if (v instanceof RootVisitor) {
-                        ((RootVisitor) v).visitRootElements(roundEnv.getRootElements());
+        if (!entries.isEmpty()) {
+            try {
+                if (roundEnv.processingOver()) {
+                    writeManifest();
+                } else {
+                    for (Object v : entries.values()) {
+                        if (v instanceof RootVisitor) {
+                            ((RootVisitor) v).visitRootElements(roundEnv.getRootElements());
+                        }
                     }
                 }
+            } catch (Exception e) {
+                env.getMessager().printMessage(Diagnostic.Kind.ERROR, Util.getStackTraceAsString(e));
             }
-        } catch (Exception e) {
-            env.error(e);
         }
         return false;
     }
 
     private void writeManifest() throws IOException {
-        InputStream inputStream = env.openResourceInput(MANIFEST_NAME);
-        Manifest manifest = inputStream == null ? new Manifest() : Env.readManifestClose(inputStream);
+        InputStream inputStream = Util.openResourceInput(env, MANIFEST_NAME);
+        Manifest manifest = inputStream == null ? new Manifest() : Util.readManifestClose(inputStream);
         updateManifest(manifest);
-        OutputStream outputStream = env.openResourceOutput(MANIFEST_NAME);
-        Env.writeManifestClose(manifest, new BufferedOutputStream(outputStream));
+        OutputStream outputStream = Util.openResourceOutput(env, MANIFEST_NAME);
+        Util.writeManifestClose(manifest, new BufferedOutputStream(outputStream));
     }
 
     private void updateManifest(Manifest m) {
         Attributes attr = m.getMainAttributes();
-        Env.putIfAbsent(attr, Attributes.Name.MANIFEST_VERSION, MANIFEST_VERSION_VALUE);
+        Util.putIfAbsent(attr, Attributes.Name.MANIFEST_VERSION, MANIFEST_VERSION_VALUE);
         for (Map.Entry<Attributes.Name, Object> e : entries.entrySet()) {
             Attributes.Name name = e.getKey();
             Object value = e.getValue();
@@ -173,7 +176,7 @@ public final class AutoManifest implements Processor {
                 if (value == null) continue;
             }
             attr.put(name, value);
-            env.note(name + ": " + value);
+            env.getMessager().printMessage(Diagnostic.Kind.NOTE, name + ": " + value);
         }
     }
 }
