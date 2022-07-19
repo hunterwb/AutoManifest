@@ -9,7 +9,7 @@
     <version>0.1.0-SNAPSHOT</version>
 
     <name>AutoManifest</name>
-    <description>Automatically generate manifest entries</description>
+    <description>Automatically generate jar manifest</description>
     <url>https://github.com/hunterwb/automanifest</url>
 
     <licenses>
