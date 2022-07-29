@@ -3,7 +3,7 @@
 Automatically generate jar manifest
 
 Keeps the manifest up to date with the build and eliminates unneeded configuration by determining the correct attribute values and creating the manifest at compile time.
-The attribute names must be passed to `javac` as a comma separated list: `-Aautomanifest=Automatic-Module-Name,Main-Class`. The jar manifest file is created at `META-INF/MANIFEST.MF` or updated if it already exists. A jar file is not created and the generated manifest file must later be added into the actual jar file, examples below.
+The attribute names must be passed to `javac` as a comma separated list: `-Aautomanifest=Automatic-Module-Name,Main-Class`. If no arguments are given the default is `-Aautomanifest=Main-Class`. The jar manifest file is created at `META-INF/MANIFEST.MF` or updated if it already exists. A jar file is not created and the generated manifest file must later be added into the actual jar file, examples below.
 
 Supported attributes:
 

@@ -21,6 +21,48 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+/**
+ * Automatically generate jar manifest
+ * <p>
+ * Keeps the manifest up to date with the build and eliminates unneeded
+ * configuration by determining the correct attribute values and creating the
+ * manifest at compile time. The attribute names must be passed to {@code javac}
+ * as a comma separated list:
+ * {@code -Aautomanifest=Automatic-Module-Name,Main-Class}. If no arguments are
+ * given the default is {@code -Aautomanifest=Main-Class}. The jar manifest file
+ * is created at {@code META-INF/MANIFEST.MF} or updated if it already exists. A
+ * jar file is not created and the generated manifest file must later be added
+ * into the actual jar file.
+ * <p>
+ * Supported attributes:
+ * <ul>
+ *     <li>{@code Automatic-Module-Name}: The common package of all classes (including {@code package-info.java} files). If there is no common package a warning is emitted. This may give bad results if the package structure was not designed with modules in mind.</li>
+ *     <li>{@code Main-Class}: The class containing the {@code main} method. If none or multiple are found a warning is emitted.</li>
+ *     <li>{@code Premain-Class}: The class containing the {@code premain} method. If none or multiple are found a warning is emitted.</li>
+ *     <li>{@code Agent-Class} or {@code Launcher-Agent-Class}: The class containing the {@code agentmain} method. If none or multiple are found a warning is emitted.</li>
+ * </ul>
+ * <p>
+ * Supported <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#getProperties()">system property</a> based attributes:
+ * <ul>
+ *     <li>{@code Created-By} or {@code Build-Jdk}: {@code ${java.version} (${java.vendor})}</li>
+ *     <li>{@code Built-By}: {@code ${user.name}}</li>
+ *     <li>{@code Build-Jdk-Spec}: {@code ${java.specification.version}}</li>
+ *     <li>{@code Build-Os}: {@code ${os.name} (${os.version}; ${os.arch})}</li>
+ * </ul>
+ * <p>
+ * Any other attribute names on their own will produce a warning. Custom
+ * attribute values can be used with any attribute name by including a colon
+ * along with the value: {@code Custom-Attribute:custom_value}. These values may
+ * not contain any commas. Only main attributes are supported, not per-entry
+ * attributes.
+ * <p>
+ * More information:
+ * <ul>
+ *     <li><a href="https://docs.oracle.com/en/java/javase/17/docs/specs/jar/jar.html">https://docs.oracle.com/en/java/javase/17/docs/specs/jar/jar.html</a></li>
+ *     <li><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.instrument/java/lang/instrument/package-summary.html">https://docs.oracle.com/en/java/javase/17/docs/api/java.instrument/java/lang/instrument/package-summary.html</a></li>
+ *     <li><a href="https://maven.apache.org/shared/maven-archiver">https://maven.apache.org/shared/maven-archiver</a></li>
+ * </ul>
+ */
 public final class AutoManifest implements Processor {
 
     private static final String OPTION_NAME = "automanifest";
