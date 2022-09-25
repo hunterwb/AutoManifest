@@ -1,7 +1,7 @@
 on: [push, pull_request]
 
 jobs:
-  java:
+  default:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: stCarolas/setup-maven@v4.3
+      - uses: stCarolas/setup-maven@v4.4
         with:
           maven-version: '3.2.5'
       - uses: actions/setup-java@v3
@@ -32,3 +32,13 @@ jobs:
           distribution: 'zulu'
       - run: mvn --version
       - run: mvn package --errors --batch-mode --settings .github/workflows/nossl.settings.xml
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - run: mvn --version
+      - run: mvn package --errors --batch-mode -P release
