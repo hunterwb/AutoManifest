@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [ '8', '11', '17', '18' ]
+        java: [ '8', '11', '17', '19' ]
         distribution: [ 'temurin' ]
         include:
           - java: '7'
