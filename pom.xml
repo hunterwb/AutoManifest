@@ -6,7 +6,7 @@
 
     <groupId>com.hunterwb</groupId>
     <artifactId>automanifest</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1-SNAPSHOT</version>
 
     <name>AutoManifest</name>
     <description>Automatically generate jar manifest</description>
